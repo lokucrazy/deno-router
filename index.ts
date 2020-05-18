@@ -1,11 +1,10 @@
-import type { HTTPOptions } from "https://deno.land/std@0.50.0/http/server.ts"
-import { serve, Server, ServerRequest } from "https://deno.land/std@0.50.0/http/server.ts"
+import { ServerRequest } from "https://deno.land/std@0.50.0/http/server.ts"
 
 interface Routes {
   [index: string]: HandlerCompose | Router | undefined
 }
 
-enum Method {
+const enum Method {
   GET = "GET",
   POST = "POST",
   PUT = "PUT",
@@ -40,19 +39,7 @@ export class Router {
   Route(path: string, router: Router) {
     this.addRouter(path, router)
   }
-
-  private addHandler(method: Method, path: string, handler: Handler) {
-    const route = path[0] !== "/" ? `/${path}` : path
-    this.routes[route] = (m: Method) => {
-      return m !== method ? undefined : handler
-    }
-  }
-
-  private addRouter(path: string, router: Router) {
-    const route = path[0] !== "/" ? `/${path}` : path
-    this.routes[route] = router
-  }
-
+  
   findHandler(method: Method, url: string): Handler {
     let handle: Router | HandlerCompose | undefined
     let path = url
@@ -74,19 +61,22 @@ export class Router {
       return (handle(method) as Handler)
     }
   }
-}
 
-export class DenoServer {
-  private server: Server
-  readonly router: Router
-  constructor(options: HTTPOptions) {
-    this.server = serve(options)
-    this.router = new Router()
+  listen(): Handler {
+    return (req) => {
+      this.findHandler((req.method as Method), req.url)(req)
+    }
   }
 
-  async listenAndServe() {
-    for await (const req of this.server) {
-      this.router.findHandler(Method.GET, req.url)(req)
+  private addHandler(method: Method, path: string, handler: Handler) {
+    const route = path[0] !== "/" ? `/${path}` : path
+    this.routes[route] = (m: Method) => {
+      return m !== method ? undefined : handler
     }
+  }
+
+  private addRouter(path: string, router: Router) {
+    const route = path[0] !== "/" ? `/${path}` : path
+    this.routes[route] = router
   }
 }

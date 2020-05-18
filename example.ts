@@ -1,6 +1,7 @@
-import { DenoServer, Router } from "./index.ts"
+import { Router } from "./index.ts"
+import { listenAndServe } from "https://deno.land/std@0.50.0/http/server.ts"
 
-const server = new DenoServer({ port: 8080 })
+const router = new Router()
 
 const customRouter = new Router()
 customRouter.Get("router", function(req) {
@@ -8,11 +9,11 @@ customRouter.Get("router", function(req) {
   req.respond({ body: "Custom Route GET"})
 })
 
-server.router.Route("custom", customRouter)
+router.Route("custom", customRouter)
 
-server.router.Get("test", function(req) {
+router.Get("test", function(req) {
   console.log("got to this")
   req.respond({ body: "Test route GET"})
 })
 
-server.listenAndServe()
+listenAndServe({ port: 8080 }, router.listen())
