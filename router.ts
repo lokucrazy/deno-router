@@ -11,40 +11,70 @@ type Routes = { [index: string]: HandlerCompose | Router | undefined }
 type Handler = ((req: ServerRequest, params?: object) => void)
 type HandlerCompose = (m: Method) => Handler | undefined
 type RouterOptions = {
-  routes: Routes | undefined,
   notFound: Handler | undefined
 }
 
+/** Handles routing for defined api routes */
 export default class Router {
   routes: Routes
   notFoundRoute: Handler
+
+  /**
+   * Creates a router
+   * @param options {RouterOptions} - router options to change some internals
+   */
   constructor(options?: RouterOptions) {
     const { notFound } = options ?? {}
     this.routes = {}
     this.notFoundRoute = notFound ?? ((req: ServerRequest) => req.respond({ status: 404, body: "Not Found" }))
   }
 
+  /**
+   * Adds a handler with GET method to path
+   * @param path - url path to add handler
+   * @param handler - function to run when accessing path
+   */
   get(path: string, handler: Handler) {
     this.addHandler(Method.GET, path, handler)
   }
 
+  /**
+   * Adds a handler with POST method to path
+   * @param path - url path to add handler
+   * @param handler - function to run when accessing path
+   */
   post(path: string, handler: Handler) {
     this.addHandler(Method.POST, path, handler)
   }
 
+  /**
+   * Adds a handler with PUT method to path
+   * @param path - url path to add handler
+   * @param handler - function to run when accessing path
+   */
   put(path: string, handler: Handler) {
     this.addHandler(Method.PUT, path, handler)
   }
 
+  /**
+   * Adds a handler with DELETE method to path
+   * @param path - url path to add handler
+   * @param handler - function to run when accessing path
+   */
   delete(path: string, handler: Handler) {
     this.addHandler(Method.DELETE, path, handler)
   }
 
+  /**
+   * Adds another router to path
+   * @param path - url path to add handler
+   * @param router - router to run when accessing path
+   */
   route(path: string, router: Router) {
     this.addRouter(path, router)
   }
   
-  findHandler(req: ServerRequest, method: Method, url: string): void {
+  private findHandler(req: ServerRequest, method: Method, url: string): void {
     let handle: Router | HandlerCompose | undefined
     let path = url
     let params: object | undefined
@@ -87,11 +117,18 @@ export default class Router {
   }
 }
 
+/** Handles url matching to routes defined in a router */
 class Matcher {
   private url: string
   private matchTokens: string[]
   private regex: RegExp
   private matchRegex: RegExp
+  
+  /**
+   * Creates a matcher
+   * @param url - the url from the serve request
+   * @param route - the route defined in a router
+   */
   constructor(url: string, route: string) {
     this.url = url
     this.regex = /:[^/]+/g
@@ -99,11 +136,17 @@ class Matcher {
     this.matchRegex = new RegExp(`^${route.replace(this.regex, '([^/]+)')}`)
   }
 
+  /**
+   * Compares url to route
+   */
   urlMatch(): boolean {
     const [correct] = this.url.toString().match(this.matchRegex) ?? []
     return !!correct
   }
 
+  /**
+   * Build params object with search and route parameters
+   */
   buildParams(): object {
     const searchParams = new URLSearchParams(this.url.match(/\?.+/)?.[0])
     const [_, ...urlTokens] = this.url.toString().match(this.matchRegex) ?? []

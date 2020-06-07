@@ -29,3 +29,14 @@ router.get("this/:id/gets/:another", function(req, params) {
 
 listenAndServe({ port: 8080 }, router.listen())
 ```
+
+there is a default 404 route that you can customize by passing in a handler to the router constructor
+
+```typescript
+import Router from "./router.ts"
+import { listenAndServe } from "https://deno.land/std@0.50.0/http/server.ts"
+
+const router = new Router({ notFound: (req) => req.respond({ body: 'hey this is a customzied 404 route' })})
+
+listenAndServer({ port: 8080}, router.listen())
+```
