@@ -1,3 +1,5 @@
+// Copyright 2020 Ryan Lokugamage. All rights reserved. MIT License
+
 import { ServerRequest } from "https://deno.land/std@0.50.0/http/server.ts"
 
 const enum Method {
@@ -123,7 +125,7 @@ class Matcher {
   private matchTokens: string[]
   private regex: RegExp
   private matchRegex: RegExp
-  
+
   /**
    * Creates a matcher
    * @param url - the url from the serve request
