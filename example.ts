@@ -1,19 +1,23 @@
-import { Router } from "./index.ts"
+import Router from "./router.ts"
 import { listenAndServe } from "https://deno.land/std@0.50.0/http/server.ts"
 
 const router = new Router()
 
 const customRouter = new Router()
-customRouter.Get("router", function(req) {
-  console.log("Got to custom route")
+customRouter.get("router", function(req) {
   req.respond({ body: "Custom Route GET"})
 })
 
-router.Route("custom", customRouter)
+router.route("custom", customRouter)
 
-router.Get("test", function(req) {
-  console.log("got to this")
+router.get("test", function(req) {
   req.respond({ body: "Test route GET"})
+})
+
+router.get("this/:id/gets/:another", function(req, params) {
+  req.respond({ body: JSON.stringify(params), headers: new Headers([
+    ['content-type', 'application/json']
+  ])})
 })
 
 listenAndServe({ port: 8080 }, router.listen())
